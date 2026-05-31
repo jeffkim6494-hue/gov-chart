@@ -21,26 +21,36 @@
             height: 20px;
             background-color: #94a3b8;
         }
-        
-        /* 툴팁 애니메이션 */
-        .tooltip-fade {
-            opacity: 0;
-            visibility: hidden;
-            transition: opacity 0.2s ease-in-out, visibility 0.2s ease-in-out;
+        .connector-horizontal::before {
+            content: '';
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            width: 2px;
+            height: 20px;
+            background-color: #94a3b8;
         }
-        .group:hover .tooltip-fade {
-            opacity: 1;
+
+        /* 툴팁 기본 스타일 */
+        .tooltip-container .tooltip-text {
+            visibility: hidden;
+            opacity: 0;
+            transition: opacity 0.2s, visibility 0.2s;
+        }
+        .tooltip-container:hover .tooltip-text {
             visibility: visible;
+            opacity: 1;
         }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen font-sans text-slate-800">
 
-    <header class="bg-white shadow-sm sticky top-0 z-20">
+    <!-- Header & Navigation -->
+    <header class="bg-white shadow-sm sticky top-0 z-10">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between items-center h-16">
                 <h1 class="text-xl font-bold text-blue-600 flex items-center gap-2">
-                    <span>🏛️</span> 행정부 조직도 알아보기
+                    <span>🏛️</span> 실시간 행정부 조직도 알아보기
                 </h1>
                 <div class="flex space-x-4">
                     <button id="tab-chart" onclick="switchTab('chart')" class="px-3 py-2 rounded-md text-sm font-medium bg-blue-100 text-blue-700 transition-colors">조직도 보기</button>
@@ -50,40 +60,43 @@
         </div>
     </header>
 
+    <!-- Main Content -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         
         <!-- View 1: Organization Chart -->
         <div id="view-chart" class="block animate-fade-in">
-            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-                <h2 class="text-2xl font-bold text-slate-700">대한민국 행정부 조직도</h2>
-                <div class="space-x-2 flex">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-slate-700">대한민국 행정부 조직도 <span class="text-sm font-normal text-green-600 ml-2 animate-pulse">🟢 실시간 연동 중</span></h2>
+                <div class="space-x-2">
                     <button onclick="downloadData()" class="px-4 py-2 bg-green-500 text-white rounded shadow hover:bg-green-600 text-sm">데이터 다운로드(JSON)</button>
                     <button onclick="clearData()" class="px-4 py-2 bg-red-400 text-white rounded shadow hover:bg-red-500 text-sm">초기화</button>
                 </div>
             </div>
 
-            <!-- Chart Hierarchy (Scrollable horizontally for smaller screens) -->
-            <!-- 툴팁이 잘리지 않도록 하단에 충분한 패딩(pb-32)을 부여합니다. -->
-            <div class="flex flex-col items-center select-none overflow-visible sm:overflow-x-auto pb-32 pt-4">
+            <!-- Chart Hierarchy -->
+            <div class="flex flex-col items-center select-none overflow-x-auto pb-8">
                 
-                <!-- President Container -->
-                <div id="container-president" class="relative connector-line mb-5">
-                    <!-- JS에서 동적 렌더링 됨 -->
+                <!-- President -->
+                <div class="relative connector-line mb-5">
+                    <div id="node-대통령" class="tooltip-container relative">
+                        <!-- JS에서 내용 채워짐 -->
+                    </div>
                 </div>
 
-                <!-- Prime Minister & Audit Container -->
+                <!-- Prime Minister & Audit -->
                 <div class="flex gap-16 relative connector-line mb-5 w-full justify-center">
-                    <div id="container-pm" class="relative">
-                        <!-- JS에서 동적 렌더링 됨 -->
+                    <div class="relative tooltip-container" id="node-국무총리">
+                         <!-- JS에서 내용 채워짐 -->
+                        <div class="absolute -right-24 top-2 text-sm text-slate-500 z-0">지휘·감독 ➔</div>
                     </div>
-                    <div id="container-audit" class="relative">
-                        <!-- JS에서 동적 렌더링 됨 -->
+                    <div class="relative tooltip-container" id="node-감사원">
+                         <!-- JS에서 내용 채워짐 -->
                     </div>
                 </div>
                 
-                <div class="w-full h-0.5 bg-slate-400 max-w-5xl mb-5 mt-2"></div>
+                <div class="w-full h-0.5 bg-slate-400 max-w-5xl mb-5"></div>
 
-                <!-- Ministries Grid Container -->
+                <!-- Ministries Grid -->
                 <div id="ministries-grid" class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4 w-full max-w-6xl mt-2">
                     <!-- Cards will be generated by JS -->
                 </div>
@@ -93,7 +106,7 @@
         <!-- View 2: Submission Form -->
         <div id="view-form" class="hidden">
             <div class="max-w-2xl mx-auto bg-white p-8 rounded-xl shadow-md border border-slate-100">
-                <h2 class="text-2xl font-bold text-slate-700 mb-6 border-b pb-2">조사한 정보 입력하기</h2>
+                <h2 class="text-2xl font-bold text-slate-700 mb-6 border-b pb-2">조사한 정보 실시간 입력하기</h2>
                 <form id="submission-form" onsubmit="submitForm(event)" class="space-y-5">
                     
                     <div>
@@ -102,7 +115,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">담당 부서/기관 선택</label>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">담당 행정 부서 (기관) 선택</label>
                         <select id="ministrySelect" required class="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none bg-white">
                             <option value="">기관을 선택하세요</option>
                             <!-- Options generated by JS -->
@@ -110,13 +123,13 @@
                     </div>
 
                     <div>
-                        <label class="block text-sm font-semibold text-slate-700 mb-1">기관이 하는 일 (공식 역할)</label>
-                        <textarea id="ministryRole" required rows="3" placeholder="교과서나 백과사전에서 조사한 기관의 주요 역할을 적어주세요." class="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
+                        <label class="block text-sm font-semibold text-slate-700 mb-1">부서가 하는 일 (공식 역할)</label>
+                        <textarea id="ministryRole" required rows="3" placeholder="교과서나 백과사전에서 조사한 부서의 주요 역할을 적어주세요." class="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
                     </div>
 
                     <div>
                         <label class="block text-sm font-semibold text-slate-700 mb-1">초등학생과 관련된 특징 (우리 생활과의 연계)</label>
-                        <textarea id="studentConnection" required rows="3" placeholder="이 기관이 우리(초등학생)의 생활과 어떤 관련이 있나요?&#10;예: 교육부 - 우리가 배우는 교과서를 만듭니다." class="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
+                        <textarea id="studentConnection" required rows="3" placeholder="이 부서가 우리(초등학생)의 생활과 어떤 관련이 있나요?&#10;예: 교육부 - 우리가 배우는 교과서를 만듭니다." class="w-full px-4 py-2 border border-slate-300 rounded-md focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"></textarea>
                     </div>
 
                     <div>
@@ -134,11 +147,11 @@
     </main>
 
     <!-- Detail Modal -->
-    <div id="detail-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-[100] flex justify-center items-center p-4">
+    <div id="detail-modal" class="hidden fixed inset-0 bg-slate-900 bg-opacity-50 z-50 flex justify-center items-center p-4">
         <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
             <div class="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-xl">
-                <h3 id="modal-title" class="text-2xl font-bold text-slate-800">기관 이름</h3>
-                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-3xl font-bold leading-none focus:outline-none">&times;</button>
+                <h3 id="modal-title" class="text-2xl font-bold text-slate-800">부서 이름</h3>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none">&times;</button>
             </div>
             <div id="modal-content" class="p-6 overflow-y-auto space-y-6">
                 <!-- Data injected by JS -->
@@ -146,133 +159,145 @@
         </div>
     </div>
 
-    <script>
-        // 최상위 기관 및 행정각부 리스트 통합
-        const topOrgs = ["대통령", "국무총리", "감사원"];
+    <!-- Firebase 최신 모듈 SDK 로드 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-app.js";
+        import { getDatabase, ref, onValue, push, set, remove } from "https://www.gstatic.com/firebasejs/10.11.1/firebase-database.js";
+
+        // ==========================================
+        // 🚨 중요: 여기에 선생님의 Firebase 설정값을 덮어쓰세요! 🚨
+        // ==========================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDTtM17YlfoHQFR3FZMKbh2Fu5-lL9mVbc",
+            authDomain: "gen-lang-client-0264971738.firebaseapp.com",
+            databaseURL: "https://gen-lang-client-0264971738-default-rtdb.firebaseio.com", // ← Realtime Database URL이 꼭 있어야 합니다!
+            projectId: "gen-lang-client-0264971738",
+            storageBucket: "gen-lang-client-0264971738.firebasestorage.app",
+            messagingSenderId: "103727407085",
+            appId: "1:103727407085:web:e0ff12de323b00d9c9d1e4"
+        };
+
+        // Firebase 초기화
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'classGovChart'); // 데이터가 저장될 최상위 폴더 이름
+
+        // 데이터 관리 변수
+        let chartData = {};
+
+        // 조직도 구성 데이터
+        const topLevel = ["대통령", "국무총리", "감사원"];
         const ministries = [
             "기획재정부", "교육부", "과학기술정보통신부", "외교부", "통일부", "법무부", 
             "국방부", "행정안전부", "국가보훈부", "문화체육관광부", "농림축산식품부", 
             "산업통상자원부", "보건복지부", "환경부", "고용노동부", "여성가족부", 
             "국토교통부", "해양수산부", "중소벤처기업부"
         ];
-        const allOrganizations = [...topOrgs, ...ministries];
+        const allDepts = [...topLevel, ...ministries];
 
-        // 데이터 초기화 및 로드
-        let chartData = JSON.parse(localStorage.getItem('govChartData')) || {};
-
-        // 초기 렌더링
-        window.onload = () => {
-            populateDropdown();
+        // 1. Firebase 실시간 데이터 수신 (onValue)
+        // 누군가 데이터를 제출하면 이 함수가 즉시 자동으로 실행되어 모든 화면을 업데이트합니다.
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            chartData = {};
+            
+            // Firebase는 데이터를 고유ID를 가진 객체로 저장하므로, 배열로 변환합니다.
+            for (let dept in data) {
+                chartData[dept] = Object.values(data[dept]);
+            }
+            
             renderChart();
-        };
+        });
 
-        // 1. 드롭다운 옵션 생성
-        function populateDropdown() {
+        // 2. 초기화 (드롭다운 세팅)
+        window.onload = () => {
             const select = document.getElementById('ministrySelect');
             
-            // 그룹화하여 드롭다운 가독성 향상
-            const optgroupTop = document.createElement('optgroup');
-            optgroupTop.label = "국가 최고 기관";
-            topOrgs.forEach(org => {
+            // 최상위 기관 그룹 추가
+            const topGroup = document.createElement('optgroup');
+            topGroup.label = "최상위 국가 기관";
+            topLevel.forEach(dept => {
                 const option = document.createElement('option');
-                option.value = org;
-                option.textContent = org;
-                optgroupTop.appendChild(option);
+                option.value = dept;
+                option.textContent = dept;
+                topGroup.appendChild(option);
             });
-            select.appendChild(optgroupTop);
+            select.appendChild(topGroup);
 
-            const optgroupMin = document.createElement('optgroup');
-            optgroupMin.label = "행정각부";
+            // 행정각부 그룹 추가
+            const minGroup = document.createElement('optgroup');
+            minGroup.label = "행정각부";
             ministries.forEach(dept => {
                 const option = document.createElement('option');
                 option.value = dept;
                 option.textContent = dept;
-                optgroupMin.appendChild(option);
+                minGroup.appendChild(option);
             });
-            select.appendChild(optgroupMin);
+            select.appendChild(minGroup);
+            
+            renderChart();
+        };
+
+        // 3. 조직도 렌더링 (최상위 + 하위)
+        function renderChart() {
+            // 하위 부서(행정각부) 렌더링
+            const grid = document.getElementById('ministries-grid');
+            grid.innerHTML = '';
+            ministries.forEach(dept => grid.appendChild(createCard(dept)));
+
+            // 최상위 기관 렌더링
+            topLevel.forEach(dept => {
+                const container = document.getElementById(`node-${dept}`);
+                if (container) {
+                    container.innerHTML = ''; // 기존 내용 비우기
+                    container.appendChild(createCard(dept, true));
+                }
+            });
         }
 
-        // 2. 카드 및 툴팁 생성 헬퍼 함수
-        function createOrgCard(name, type) {
+        // 4. 카드 생성 헬퍼 함수
+        function createCard(name, isTopLevel = false) {
             const data = chartData[name] || [];
             const isCompleted = data.length > 0;
             
-            const cardWrapper = document.createElement('div');
-            // 호버 시 z-index를 올려 툴팁이 다른 박스에 가려지지 않게 함
-            cardWrapper.className = 'relative group hover:z-50 cursor-pointer transition-all transform hover:-translate-y-1 hover:shadow-lg rounded-lg border-2 flex flex-col justify-center items-center w-full';
+            const card = document.createElement('div');
             
-            // 타입별 스타일 적용 (작성 전/후 구분)
-            if (type === '대통령') {
-                cardWrapper.classList.add('py-4', 'px-10', 'min-w-[160px]');
-                if (isCompleted) cardWrapper.classList.add('bg-blue-700', 'text-white', 'border-blue-800', 'shadow-md');
-                else cardWrapper.classList.add('bg-white', 'text-slate-500', 'border-slate-300', 'border-dashed');
-            } 
-            else if (type === '국무총리' || type === '감사원') {
-                cardWrapper.classList.add('py-3', 'px-8', 'min-w-[140px]');
-                if (isCompleted) cardWrapper.classList.add('bg-blue-600', 'text-white', 'border-blue-700', 'shadow');
-                else cardWrapper.classList.add('bg-white', 'text-slate-500', 'border-slate-300', 'border-dashed');
-            } 
-            else { // 행정각부
-                cardWrapper.classList.add('h-24', 'p-4');
-                if (isCompleted) cardWrapper.classList.add('bg-blue-50', 'text-blue-900', 'border-blue-400', 'shadow');
-                else cardWrapper.classList.add('bg-white', 'text-slate-400', 'border-slate-200', 'border-dashed');
-            }
+            // 최상위 여부에 따른 스타일 분기
+            let baseStyle = isTopLevel 
+                ? "py-3 px-8 rounded-lg shadow-md border-2 cursor-pointer transition-all transform hover:-translate-y-1 relative z-10 "
+                : "relative cursor-pointer transition-all transform hover:-translate-y-1 hover:shadow-lg rounded-lg p-4 border-2 text-center flex flex-col justify-center items-center h-24 w-full ";
 
-            // 클릭 이벤트
-            cardWrapper.onclick = () => isCompleted ? openModal(name) : alert(`아직 ${name}에 대해 조사된 내용이 없습니다. 정보를 먼저 입력해주세요!`);
+            let colorStyle = isCompleted 
+                ? (isTopLevel ? 'bg-blue-600 border-blue-700 text-white shadow-lg' : 'bg-blue-50 border-blue-400 text-blue-900 shadow')
+                : 'bg-white border-slate-300 text-slate-500 border-dashed';
+            
+            card.className = baseStyle + colorStyle;
+            card.onclick = () => isCompleted ? openModal(name) : alert('아직 조사된 내용이 없습니다. 정보를 먼저 입력해주세요!');
 
-            // 내부 HTML 구성 (이름, 배지, 툴팁)
+            // 내부 HTML 구성 (이름, 배지)
             let htmlContent = `<span class="font-bold text-lg">${name}</span>`;
             
             if (isCompleted) {
-                // 작성 완료 배지 (제출 건수 포함)
-                htmlContent += `<span class="absolute -top-3 -right-3 bg-green-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow border border-white z-10 whitespace-nowrap">작성 완료 (${data.length}건)</span>`;
+                // 작성 완료 배지 (여러 건수 반영)
+                htmlContent += `<span class="absolute -top-3 -right-3 bg-green-500 text-white text-[11px] font-bold px-2 py-0.5 rounded-full shadow border border-white z-20 whitespace-nowrap">작성 완료 (${data.length}건)</span>`;
                 
-                // 툴팁 구성 (가장 최근에 작성된 1건의 요약 데이터 표시)
+                // 툴팁 구성 (가장 최근 데이터)
                 const latestEntry = data[data.length - 1];
-                const truncatedRole = latestEntry.role.length > 35 ? latestEntry.role.substring(0, 35) + '...' : latestEntry.role;
-                
                 htmlContent += `
-                    <div class="tooltip-fade absolute top-full left-1/2 transform -translate-x-1/2 mt-3 w-56 bg-slate-800 text-white text-sm rounded-lg shadow-xl z-50 p-4 text-left pointer-events-none">
-                        <div class="absolute -top-1.5 left-1/2 transform -translate-x-1/2 w-3 h-3 bg-slate-800 rotate-45"></div>
-                        <div class="font-bold text-blue-300 mb-1 border-b border-slate-600 pb-1">🧑‍🎓 ${latestEntry.student}</div>
-                        <div class="text-slate-200 leading-snug mt-1 break-keep">"${truncatedRole}"</div>
-                        <div class="text-xs text-slate-400 mt-2 text-right">클릭해서 자세히 보기</div>
+                    <div class="tooltip-text absolute z-50 w-64 p-3 -mt-2 bg-slate-800 text-white text-sm rounded-lg shadow-xl bottom-full left-1/2 transform -translate-x-1/2 break-words">
+                        <div class="font-bold text-blue-300 mb-1 border-b border-slate-600 pb-1">🧑‍🎓 ${latestEntry.student} 작성</div>
+                        <div class="line-clamp-2">${latestEntry.role}</div>
+                        <div class="absolute w-3 h-3 bg-slate-800 transform rotate-45 left-1/2 -bottom-1.5 -translate-x-1/2"></div>
                     </div>
                 `;
             }
-            
-            cardWrapper.innerHTML = htmlContent;
-            return cardWrapper;
+
+            card.innerHTML = htmlContent;
+            return card;
         }
 
-        // 3. 전체 조직도 렌더링
-        function renderChart() {
-            // 상위 기관 렌더링
-            const containerPres = document.getElementById('container-president');
-            containerPres.innerHTML = '';
-            containerPres.appendChild(createOrgCard('대통령', '대통령'));
-
-            const containerPM = document.getElementById('container-pm');
-            containerPM.innerHTML = '';
-            containerPM.appendChild(createOrgCard('국무총리', '국무총리'));
-            // 국무총리 -> 감사원 지시 화살표 텍스트 추가
-            containerPM.innerHTML += `<div class="absolute -right-16 md:-right-20 top-3 text-xs md:text-sm text-slate-500 font-medium whitespace-nowrap hidden sm:block">지휘·감독 ➔</div>`;
-
-            const containerAudit = document.getElementById('container-audit');
-            containerAudit.innerHTML = '';
-            containerAudit.appendChild(createOrgCard('감사원', '감사원'));
-
-            // 행정각부 그리드 렌더링
-            const grid = document.getElementById('ministries-grid');
-            grid.innerHTML = '';
-            ministries.forEach(dept => {
-                grid.appendChild(createOrgCard(dept, 'ministry'));
-            });
-        }
-
-        // 4. 폼 제출 처리
-        function submitForm(event) {
+        // 5. 폼 제출 처리 (Firebase에 저장)
+        window.submitForm = async (event) => {
             event.preventDefault();
             
             const dept = document.getElementById('ministrySelect').value;
@@ -284,67 +309,25 @@
                 timestamp: new Date().toLocaleString()
             };
 
-            if (!chartData[dept]) chartData[dept] = [];
-            chartData[dept].push(entry);
-
-            // 로컬 스토리지 저장
-            localStorage.setItem('govChartData', JSON.stringify(chartData));
-
-            // 폼 초기화 및 알림
-            event.target.reset();
-            alert(`${dept} 정보가 성공적으로 추가되었습니다!`);
+            // Firebase의 해당 부서 경로에 데이터를 '추가(push)' 합니다. (동시 접속 충돌 방지)
+            const deptRef = ref(db, `classGovChart/${dept}`);
+            const newEntryRef = push(deptRef);
             
-            // 화면 전환 및 재렌더링
-            renderChart();
-            switchTab('chart');
+            try {
+                await set(newEntryRef, entry);
+                
+                // 폼 초기화 및 알림
+                event.target.reset();
+                alert(`${dept} 정보가 성공적으로 전송되었습니다! 친구들의 화면에도 곧 나타납니다.`);
+                switchTab('chart');
+            } catch (error) {
+                console.error("데이터 저장 실패:", error);
+                alert("데이터 저장에 실패했습니다. 인터넷 연결이나 Firebase 설정을 확인하세요.");
+            }
         }
 
-        // 5. 모달 제어
-        function openModal(dept) {
-            const modal = document.getElementById('detail-modal');
-            const title = document.getElementById('modal-title');
-            const content = document.getElementById('modal-content');
-
-            title.textContent = dept;
-            content.innerHTML = '';
-
-            // 누적된 데이터 모두 표시 (최신순)
-            const entries = [...chartData[dept]].reverse(); 
-
-            entries.forEach(entry => {
-                content.innerHTML += `
-                    <div class="bg-blue-50 p-5 rounded-lg border border-blue-100">
-                        <div class="flex justify-between items-center mb-3">
-                            <span class="font-bold text-blue-800 text-lg">🧑‍🎓 ${entry.student}</span>
-                            <span class="text-xs text-slate-500">${entry.timestamp}</span>
-                        </div>
-                        <div class="space-y-4">
-                            <div>
-                                <h4 class="text-xs font-bold text-blue-600 uppercase mb-1">기관이 하는 일</h4>
-                                <p class="text-slate-800 bg-white p-3 rounded border border-blue-100 leading-relaxed">${entry.role}</p>
-                            </div>
-                            <div>
-                                <h4 class="text-xs font-bold text-green-600 uppercase mb-1">초등학생과의 연계점</h4>
-                                <p class="text-slate-800 bg-white p-3 rounded border border-green-100 leading-relaxed">${entry.connection}</p>
-                            </div>
-                            <div class="mt-3 pt-3 border-t border-blue-200">
-                                <span class="text-xs font-bold text-slate-500 uppercase">출처:</span>
-                                <span class="text-sm text-slate-600 italic">"${entry.citation}"</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            modal.classList.remove('hidden');
-        }
-
-        function closeModal() {
-            document.getElementById('detail-modal').classList.add('hidden');
-        }
-
-        // 6. 탭 전환 UI
-        function switchTab(tab) {
+        // 6. 탭 전환
+        window.switchTab = (tab) => {
             const viewChart = document.getElementById('view-chart');
             const viewForm = document.getElementById('view-form');
             const tabChart = document.getElementById('tab-chart');
@@ -363,8 +346,52 @@
             }
         }
 
-        // 7. 교사용 데이터 관리 툴
-        function downloadData() {
+        // 7. 모달 제어
+        window.openModal = (dept) => {
+            const modal = document.getElementById('detail-modal');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+
+            title.textContent = dept;
+            content.innerHTML = '';
+
+            const deptData = chartData[dept] || [];
+            
+            // 최신 글이 위로 오게 역순 정렬(선택 사항)
+            [...deptData].reverse().forEach((entry) => {
+                content.innerHTML += `
+                    <div class="bg-blue-50 p-5 rounded-lg border border-blue-100">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-bold text-blue-800 text-lg">🧑‍🎓 ${entry.student}</span>
+                            <span class="text-xs text-slate-400">${entry.timestamp}</span>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <h4 class="text-xs font-bold text-blue-600 uppercase mb-1">부서가 하는 일</h4>
+                                <p class="text-slate-700 bg-white p-3 rounded border border-blue-50">${entry.role}</p>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-green-600 uppercase mb-1">초등학생과의 연계점</h4>
+                                <p class="text-slate-700 bg-white p-3 rounded border border-green-50">${entry.connection}</p>
+                            </div>
+                            <div class="mt-3 pt-3 border-t border-blue-100">
+                                <span class="text-xs font-bold text-slate-500 uppercase">출처:</span>
+                                <span class="text-sm text-slate-600 italic">"${entry.citation}"</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            modal.classList.remove('hidden');
+        }
+
+        window.closeModal = () => {
+            document.getElementById('detail-modal').classList.add('hidden');
+        }
+
+        // 8. 교사용 데이터 관리 도구
+        window.downloadData = () => {
             if(Object.keys(chartData).length === 0) {
                 alert("아직 입력된 데이터가 없습니다.");
                 return;
@@ -372,22 +399,25 @@
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(chartData, null, 2));
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
-            downloadAnchorNode.setAttribute("download", "행정부_조직도_학생데이터.json");
-            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.setAttribute("download", "행정부_조직도_실시간_학생데이터.json");
+            document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();
             downloadAnchorNode.remove();
         }
 
-        function clearData() {
+        window.clearData = async () => {
             const password = prompt("교사용 초기화 비밀번호를 입력하세요:");
-            if (password === null) return; // 사용자가 취소를 누른 경우
+            if (password === null) return;
             
             if (password === "0505") {
-                if(confirm("모든 학생의 입력 데이터가 삭제됩니다. 정말 초기화하시겠습니까? (JSON으로 먼저 다운로드하는 것을 권장합니다)")) {
-                    localStorage.removeItem('govChartData');
-                    chartData = {};
-                    renderChart();
-                    alert("초기화되었습니다.");
+                if(confirm("❗모든 학생의 기기에서 데이터가 실시간으로 삭제됩니다. 정말 초기화하시겠습니까?")) {
+                    try {
+                        // Firebase의 데이터를 통째로 삭제
+                        await remove(dbRef);
+                        alert("모든 데이터가 초기화되었습니다.");
+                    } catch (error) {
+                        alert("초기화 실패: " + error.message);
+                    }
                 }
             } else {
                 alert("비밀번호가 일치하지 않습니다.");
